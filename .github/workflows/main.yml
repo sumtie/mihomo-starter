@@ -76,10 +76,32 @@ jobs:
           rm ui.zip
 
 
-      - name: Create package
+      - name: Create Windows package
         run: |
-          zip -r mihomo.zip . \
-          -x ".git/*"
+          mkdir -p dist/windows
+          # Shared files
+          cp config.yaml country.mmdb dist/windows/
+          cp -r ui dist/windows/
+          # Windows-specific
+          cp mihomo.exe start.bat startAdmin.bat dist/windows/
+          # Create zip
+          cd dist/windows
+          zip -r ../../mihomo-windows.zip .
+          cd ../..
+
+
+      - name: Create macOS package
+        run: |
+          mkdir -p dist/macos
+          # Shared files
+          cp config.yaml country.mmdb dist/macos/
+          cp -r ui dist/macos/
+          # macOS-specific
+          cp mihomo start.sh dist/macos/
+          # Create zip
+          cd dist/macos
+          zip -r ../../mihomo-macos.zip .
+          cd ../..
 
 
       - name: Delete old release
@@ -96,9 +118,15 @@ jobs:
       - name: Create new release
         run: |
           gh release create latest \
-          mihomo.zip \
+          mihomo-windows.zip \
+          mihomo-macos.zip \
           --title "Mihomo Package Latest" \
-          --notes "Auto build $(date)"
+          --notes "Auto build $(date)
+
+          ## Downloads
+          - **Windows**: \`mihomo-windows.zip\` (contains mihomo.exe, start.bat, startAdmin.bat)
+          - **macOS**: \`mihomo-macos.zip\` (contains mihomo binary, start.sh)
+          "
 
         env:
           GH_TOKEN: ${{ github.token }}
